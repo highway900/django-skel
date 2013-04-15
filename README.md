@@ -55,6 +55,9 @@ Where ``woot`` is the name of the project you'd like to create.
 This is possible because Django 1.4's ``startproject`` command allows you to
 fetch a project template over HTTP (which is what we're doing here).
 
+Heroku
+======
+
 While not strictly required, it is also recommended to do
 
      $ heroku config:add SECRET_KEY=putsomethingfairlycomplexhere
