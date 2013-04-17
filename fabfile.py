@@ -8,15 +8,15 @@ from fabric.api import abort, env, local, settings, task, require, cd
 from fabric.operations import _prefix_commands, _prefix_env_vars, sudo, run
 
 # Edit below
-env.proj_name = 'mwav_messenger'
+env.proj_name = 'project_title'
 env.disable_known_hosts = True # always fails for me without this
 hosts = {
-         'local':['192.168.1.13'],
-         'iris':['iris.manwithavan.com.au'],
+         'local':['192.168.1.1'],  # Virtual Machine
+         'production':['production.domain.name'],
         }
 env.user = 'localadmin'
 env.local_user = 'mattb'
-env.root = '/srv/sms' # where the your application root lives
+env.root = '/srv/{0}'.format(hosts['production']) # where the your application root lives
 env.requirements = 'requirements.txt' # location of 
 env.git_user = 'highway900'
 # *should* work if configured above correctly
@@ -61,7 +61,7 @@ def setup_libs():
     """Install required ubuntu libs
     """
     # if env.linux would be ideal UBUNTU/DEBIAN specific
-    libs = ['git-core', 'libevent-dev', 'python-dev', 'nginx', 'rabbitmq-server', 'supervisor', 'python-pip', 'libmysqlclient-dev']
+    libs = ['git-core', 'python-dev', 'nginx', 'supervisor', 'python-pip', 'libmysqlclient-dev']
     sudo('apt-get install ' + ' '.join(libs))
 
 @task
@@ -91,8 +91,8 @@ def config():
         sudo('rm /etc/nginx/sites-enabled/default')
     with cd(env.proj_root):
         sudo('cp scripts/*.conf /etc/supervisor/conf.d/.')
-        sudo('cp scripts/sms /etc/nginx/sites-available/.')
-        sudo('ln -s /etc/nginx/sites-available/sms /etc/nginx/sites-enabled/default')
+        sudo('cp scripts/{0} /etc/nginx/sites-available/.'.format(host['production']))
+        sudo('ln -s /etc/nginx/sites-available/{0} /etc/nginx/sites-enabled/default'.format(host['production'])
 
 @task
 def switch_branch(branch):
@@ -138,7 +138,6 @@ def reload_nginx():
 @task
 def restart():
     """Restart the queue, gunicorn, nginx"""
-    restart_queue()
     reload_nginx()
     restart_gunicorn()
 
